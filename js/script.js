@@ -55,7 +55,7 @@ if (id == null) {
             let swl = Swal.fire({
               input: 'url',
               inputLabel: 'URL address',
-              inputValue: `https://sayang.github.io/?id=${res.data.id}&by=${Creator}`,
+              inputValue: `https://athallahdzaki.github.io/Sayang/?id=${res.data.id}&by=${Creator}`,
               confirmButtonText: "Copy",
               allowOutsideClick: false,
               preConfirm: () => {
