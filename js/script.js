@@ -3,48 +3,173 @@ let nama, val;
 const url_string = document.URL;
 const url = new URL(url_string);
 let sender;
+let data;
 
 if (url.searchParams.get('by') != null) {
   sender = url.searchParams.get('by');
 } else {
-  sender = "Adam";
+  sender = "Athallah";
+}
+
+let id = url.searchParams.get("id")
+
+axios.get("https://sayangbackend.herokuapp.com/ping").catch(() => {
+  Swal.fire("Couldn't connect to database", "", "error").then(function() {
+    Swal.fire("Maaf Ya Kak 🙏", "", "error").then(function() {
+      window.location.href = "https://google.com";
+    })
+  })
+})
+
+if (id == null) {
+  document.querySelector('.tombol').classList.add("d-none");
+  document.getElementById('havefun').classList.remove("d-none");
+  let Creator;
+  Swal.fire({
+    title: `Mau Ngapain Kak?`,
+    showDenyButton: true,
+    showCancelButton: false,
+    confirmButtonText: `Nembak Orang`,
+    denyButtonText: `Cek Status`,
+  }).then((res) => {
+    if(res.isConfirmed) {
+      Swal.fire({
+        title: 'Pengen nembak orang?',
+        input: 'text',
+        inputLabel: 'Isi namamu dlu',
+        showCancelButton: true,
+        inputAttributes : {
+          "autocomplete" : "off"
+        },
+        inputValidator: (value) => {
+          if (!value) {
+            return `Isi dulu dong, ntar dikira yang nembak si ${sender} 😠`
+          } else {
+            Creator = value;
+          }
+        }
+      }).then((res) => {
+        if(res.isConfirmed) { 
+          axios.post(`https://sayangbackend.herokuapp.com/add`).then((res) => {
+            axios.post(`https://sayangbackend.herokuapp.com/refresh`)
+            let swl = Swal.fire({
+              input: 'url',
+              inputLabel: 'URL address',
+              inputValue: `https://sayang.github.io/?id=${res.data.id}&by=${Creator}`,
+              confirmButtonText: "Copy",
+              allowOutsideClick: false,
+              preConfirm: () => {
+                let copyText = document.getElementById("swal2-input");
+                copyText.select();
+                copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+                /* Copy the text inside the text field */
+                navigator.clipboard.writeText(copyText.value);
+              }
+            })
+            swl.disableInput();
+            swl.then(() => {
+              Swal.fire("Information", "Text Has Been Copied", "info");
+            })
+          }).catch((e) => {
+            console.log(e);
+          })
+        } else {
+          
+        }
+      })
+    } else {
+
+      Swal.fire({
+        title: 'Enter ID',
+        input: 'url',
+        inputLabel: 'Masukkan URL yang pernah kamu buat',
+        footer : "Kadang Kadang Error, Coba Ulangin Lagi Kalau Statusnya Not Accepted (Pertama Kali Cek)",
+        showCancelButton: false,
+        inputValidator: (value) => {
+          if (!value) {
+            return `Isi Dlu, kalau ga ada URLnya ntar ceknya gimana 😠`
+          } else {
+            
+          }
+        }
+      }).then((res) => {
+        if(res.isConfirmed) { 
+          let id = new URL(res.value).searchParams.get("id");
+          if(id == "" || id == null) {
+            return Swal.fire("Invalid ID", "", "error");
+          }
+          axios.get(`https://sayangbackend.herokuapp.com/get?id=${id}`).then((res) => {
+            document.getElementById("havefun").innerHTML = res.data.status;
+            if(res.data.statusint == 1) confetti();
+            if(res.data.statusint == 1 || res.data.statusint == 2) {
+              axios.post(`https://sayangbackend.herokuapp.com/remove?id=${id}`).then(res => console.log(res.data)).catch(e => console.log(e));
+              axios.post(`https://sayangbackend.herokuapp.com/refresh`)
+            }
+          })
+        } else {
+          
+        }
+      })
+    }
+  })
+} else {
+  axios.get(`https://sayangbackend.herokuapp.com/get?id=${id}`).then(res => {
+    console.log(res.data);
+    if(res.data.status == "Not Found") {
+      Swal.fire("ID Tidak Valid", "Mungkin Salah, Kamu Bisa Menekan Tombol Dibawah Untuk Memastikan Bahwa ID ini ada", "error").then(function() {
+        window.location.reload()
+      })
+      return;
+    }
+    data = res.data;
+    if(data.status != "Not Accepted") {
+      return Swal.fire("Kamu hanya bisa melakukannya 1x").then(function() {
+        window.location.reload()
+      })
+    }
+  })
 }
 
 let footer = document.getElementById("credit");
 footer.innerHTML = sender;
-footer.href = "https://www.instagram.com/adamukti/";
 
 document.querySelector(".tombol").addEventListener('click', function () {
-  Swal.fire("Hallo Sayangku", "Aku ada pertanyaan nih buat kamu?", "question").then(function () {
+  Swal.fire("Hallo", "Aku ada pertanyaan nih buat kamu?", "question").then(function () {
     Swal.fire("Jawab yang jujur ya!").then(function () {
       Swal.fire("Awas aja kalo boong!!", "", "error").then(function () {
-
-        const {
-          value: name
-        } = Swal.fire({
+        Swal.fire({
           title: 'Masukin nama kamu dulu',
           input: 'text',
           inputLabel: '',
           showCancelButton: true,
           inputValidator: (value) => {
             if (!value) {
-              return 'Isi dulu dong beb'
+              return 'Isi dulu dong 😊'
             } else {
               nama = value;
             }
           }
         }).then(function (res) {
-		  if(!res.isConfirmed) { return Swal.fire('Kamu Jahat Ngak Mau Ngisi Namamu', '', 'error').then(function () {Swal.fire('Yaudah deh bye!')})}
-          const pertanyaan = Swal.fire({
-            title: `${nama} sayang ga sama ${sender}?`,
+          if(!res.isConfirmed) { 
+            return Swal.fire('Kamu Jahat Ngak Mau Ngisi Namamu', '', 'error').then(function () {
+              axios.delete(`https://sayangbackend.herokuapp.com/delete?id=${id}`)
+              axios.post(`https://sayangbackend.herokuapp.com/refresh`)
+              window.location.href = "https://google.com";
+            })
+          }
+          Swal.fire({
+            title: `${nama} Mau ga jadi pacarnya ${sender}?`,
             showDenyButton: true,
             showCancelButton: false,
-            confirmButtonText: `Sayang`,
+            confirmButtonText: `Mau`,
             denyButtonText: `Gak`,
           }).then((result) => {
             /* Read more about isConfirmed, isDenied below */
             if (result.isConfirmed) {
-              Swal.fire(`${sender} juga sayang banget sama ${nama}`).then(function () {
+              axios.post(`https://sayangbackend.herokuapp.com/update?from=${nama}&id=${id}&response=1`)
+              axios.post(`https://sayangbackend.herokuapp.com/refresh`)
+              Swal.fire(`${sender} juga mau jadi pacarnya ${nama}`).then(function () {
                 Swal.fire({
                   title: 'Seberapa sayang emangnya?',
                   icon: 'question',
@@ -68,14 +193,14 @@ document.querySelector(".tombol").addEventListener('click', function () {
                     }).then((result) => {
                       /* Read more about isConfirmed, isDenied below */
                       if (result.isConfirmed) {
-                        Swal.fire(`Huhu iya ${sender} juga kangen ${nama} :((`).then(function () {
+                        Swal.fire(`Huhu iya ${sender} juga kangen ${nama} 😞`).then(function () {
                           Swal.fire('Terakhir deh sayang').then(function () {
                             Swal.fire('Coba klik ikon hati di paling bawah dong')
                           })
                         })
                       } else if (result.isDenied) {
                         Swal.fire('Jahat banget emang ga kangen sama pacar sendiri', '', 'error').then(function () {
-                          Swal.fire('Yaudah deh bye!')
+                          Swal.fire('Yaudah deh gak apa apa, yang penting kamu menerimaku!')
                         })
                       }
                     })
@@ -83,8 +208,10 @@ document.querySelector(".tombol").addEventListener('click', function () {
                 })
               })
             } else if (result.isDenied) {
-              Swal.fire(`Yakin ga suka sama ${sender}?`, '', 'error').then(function () {
+              Swal.fire(`Yakin ga mau sama ${sender}?`, '', 'error').then(function () {
+                axios.post(`https://sayangbackend.herokuapp.com/update?id=${id}&from=${nama}&response=0`);
                 Swal.fire('Yaudah deh bye!')
+                axios.post(`https://sayangbackend.herokuapp.com/refresh`)
               })
             }
           })
@@ -100,10 +227,9 @@ document.querySelector('.hati').addEventListener('click', function () {
   confetti();
   const teks = document.getElementById('teks');
   const btn = document.querySelector('.tombol');
-  teks.classList.remove('d-none')
+  teks.classList.remove('d-none');
+  document.getElementById("havefun").classList.add("d-none");
   btn.classList.add('d-none')
-  console.log(teks);
-  console.log(btn);
 })
 
 'use strict';
