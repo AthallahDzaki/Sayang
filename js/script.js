@@ -13,7 +13,7 @@ if (url.searchParams.get('by') != null) {
 
 let id = url.searchParams.get("id")
 
-axios.get("https://sayangbackend.herokuapp.com/ping").catch(() => {
+axios.get("https://athallah.69dev.id/?routes=ping").catch(() => {
   Swal.fire("Couldn't connect to database", "", "error").then(function() {
     Swal.fire("Maaf Ya Kak 🙏", "", "error").then(function() {
       window.location.href = "https://google.com";
